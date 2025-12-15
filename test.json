@@ -1,0 +1,34 @@
+[
+    {
+        "serverId": "test-server-001",
+        "pid": 1001,
+        "name": "ukui-panel",
+        "userName": "ukui",
+        "status": "S",
+        "timestamp": 1734249600000,
+        "trend": [
+            {
+                "timestamp": 1765766566988,
+                "cpuUsage": 8.89,
+                "memoryUsage": 2.99,
+                "threadCount": 12
+            }
+        ],
+        "threads": [
+            {
+                "threadId": 100101,
+                "userName": "ukui",
+                "priority": 17,
+                "niceValue": 0,
+                "virtualMemory": "6M",
+                "residentMemory": "3M",
+                "sharedMemory": "1M",
+                "status": "S",
+                "cpuUsage": "0.7",
+                "memoryUsage": "0.2",
+                "runtime": "10:59:14",
+                "command": "ukui-panel: main thread"
+            }
+        ]
+    }
+]
