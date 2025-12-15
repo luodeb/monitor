@@ -294,24 +294,29 @@ pub fn check_max_threads_process() -> Result<String, Box<dyn std::error::Error>>
     sys.refresh_all();
     
     let mut max_thread_count = 0;
-    let mut max_process_info = None;
+    let mut max_process_infos = Vec::new();
 
     for (pid, process) in sys.processes() {
         let thread_count = get_thread_count(pid.as_u32());
         if thread_count > max_thread_count {
             max_thread_count = thread_count;
-            max_process_info = Some((pid.as_u32(), process.name().to_string_lossy().to_string(), thread_count));
+            max_process_infos.clear();
+            max_process_infos.push((pid.as_u32(), process.name().to_string_lossy().to_string(), thread_count));
+        } else if thread_count == max_thread_count && max_thread_count > 0 {
+            max_process_infos.push((pid.as_u32(), process.name().to_string_lossy().to_string(), thread_count));
         }
     }
 
-    if let Some((pid, name, count)) = max_process_info {
-        let result = serde_json::json!({
-            "pid": pid,
-            "name": name,
-            "thread_count": count
-        });
-        Ok(serde_json::to_string_pretty(&result)?)
+    if !max_process_infos.is_empty() {
+        let results: Vec<_> = max_process_infos.into_iter().map(|(pid, name, count)| {
+            serde_json::json!({
+                "pid": pid,
+                "name": name,
+                "thread_count": count
+            })
+        }).collect();
+        Ok(serde_json::to_string_pretty(&results)?)
     } else {
-        Ok("{}".to_string())
+        Ok("[]".to_string())
     }
 }
