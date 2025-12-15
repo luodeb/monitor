@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use sysinfo::{System};
 use chrono::Utc;
-use indicatif::{ProgressBar, ProgressStyle};
 use crate::util;
 
 // 获取进程线程数的跨平台函数
@@ -206,20 +205,9 @@ pub fn collect_processes() -> Result<String, Box<dyn std::error::Error>> {
     // 收集所有进程信息
     let mut processes = Vec::new();
     
-    // 创建进度条
-    let process_count = sys.processes().len() as u64;
-    let pb = ProgressBar::new(process_count);
-    pb.set_style(
-        ProgressStyle::default_bar()
-            .template("[{elapsed_precise}] {bar:40.cyan/blue} {pos}/{len} {msg}")
-            .unwrap()
-            .progress_chars("=>-")
-    );
-    
     for (pid, process) in sys.processes() {
         let process_name = process.name().to_string_lossy().to_string();
-        pb.set_message(format!("处理进程: {}", process_name));
-        
+
         // 获取用户名
         let user_name = process.user_id()
             .and_then(|uid| {
@@ -250,7 +238,6 @@ pub fn collect_processes() -> Result<String, Box<dyn std::error::Error>> {
         
         // 跳过线程数少于20的进程
         if thread_count < 20 {
-            pb.inc(1);
             continue;
         }
         
@@ -278,10 +265,7 @@ pub fn collect_processes() -> Result<String, Box<dyn std::error::Error>> {
         };
         
         processes.push(process_data);
-        pb.inc(1);
     }
-    
-    pb.finish_with_message("完成");
 
     // 序列化为JSON字符串（格式化输出）
     let json_string = serde_json::to_string_pretty(&processes)?;
