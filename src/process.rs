@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use sysinfo::{System};
 use chrono::Utc;
 use crate::util;
+use local_ip_address::local_ip;
+use std::process::Command;
 
 // 获取进程线程数的跨平台函数
 fn get_thread_count(pid: u32) -> u32 {
@@ -143,6 +145,14 @@ fn format_memory(kb: u64) -> String {
 pub struct ProcessData {
     #[serde(rename = "serverId")]
     pub server_id: String,
+    #[serde(rename = "serverName")]
+    pub server_name: String,
+    #[serde(rename = "serverIp")]
+    pub server_ip: String,
+    #[serde(rename = "serverOs")]
+    pub server_os: String,
+    #[serde(rename = "serverStatus")]
+    pub server_status: String,
     pub pid: u32,
     pub name: String,
     #[serde(rename = "userName")]
@@ -202,6 +212,21 @@ pub fn collect_processes() -> Result<String, Box<dyn std::error::Error>> {
     // 获取系统总内存
     let total_memory = sys.total_memory() as f64;
 
+    // 获取服务器信息
+    let server_name = hostname::get()
+        .map(|h| h.to_string_lossy().to_string())
+        .unwrap_or_else(|_| "unknown".to_string());
+
+    let server_ip = local_ip()
+        .map(|ip| ip.to_string())
+        .unwrap_or_else(|_| "unknown".to_string());
+
+    let server_os = Command::new("uname")
+        .arg("-a")
+        .output()
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+        .unwrap_or_else(|_| "unknown".to_string());
+
     // 收集所有进程信息
     let mut processes = Vec::new();
     
@@ -255,6 +280,10 @@ pub fn collect_processes() -> Result<String, Box<dyn std::error::Error>> {
         // 创建进程数据
         let process_data = ProcessData {
             server_id: server_id.clone(),
+            server_name: server_name.clone(),
+            server_ip: server_ip.clone(),
+            server_os: server_os.clone(),
+            server_status: "running".to_string(),
             pid: pid.as_u32(),
             name: process_name,
             user_name,
