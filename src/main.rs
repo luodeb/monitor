@@ -16,7 +16,11 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// 收集并输出进程信息
-    Process,
+    Process {
+        /// 检查线程数最多的进程
+        #[arg(long)]
+        check: bool,
+    },
     /// 收集并输出系统指标信息
     Metrics,
     /// 收集并输出 dmesg 日志
@@ -40,9 +44,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Process => {
-            let json = process::collect_processes()?;
-            println!("{}", json);
+        Commands::Process { check } => {
+            if check {
+                let json = process::check_max_threads_process()?;
+                println!("{}", json);
+            } else {
+                let json = process::collect_processes()?;
+                println!("{}", json);
+            }
         }
         Commands::Metrics => {
             let json = metrics::collect_metrics()?;

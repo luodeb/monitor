@@ -288,3 +288,30 @@ pub fn collect_processes() -> Result<String, Box<dyn std::error::Error>> {
     
     Ok(json_string)
 }
+
+pub fn check_max_threads_process() -> Result<String, Box<dyn std::error::Error>> {
+    let mut sys = System::new_all();
+    sys.refresh_all();
+    
+    let mut max_thread_count = 0;
+    let mut max_process_info = None;
+
+    for (pid, process) in sys.processes() {
+        let thread_count = get_thread_count(pid.as_u32());
+        if thread_count > max_thread_count {
+            max_thread_count = thread_count;
+            max_process_info = Some((pid.as_u32(), process.name().to_string_lossy().to_string(), thread_count));
+        }
+    }
+
+    if let Some((pid, name, count)) = max_process_info {
+        let result = serde_json::json!({
+            "pid": pid,
+            "name": name,
+            "thread_count": count
+        });
+        Ok(serde_json::to_string_pretty(&result)?)
+    } else {
+        Ok("{}".to_string())
+    }
+}
