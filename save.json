@@ -1,0 +1,113 @@
+{
+    "process": [
+        {
+            "serverId": "test-server-001",
+            "serverName": "测试服务器1",
+            "serverIp": "192.168.1.100",
+            "serverOs": "Ubuntu 22.04",
+            "serverStatus": "running",
+            "pid": 1001,
+            "name": "ukui-panel",
+            "userName": "ukui",
+            "status": "S",
+            "timestamp": 1734249600000,
+            "trend": [
+                {
+                    "cpuUsage": 8.89,
+                    "memoryUsage": 2.99,
+                    "threadCount": 12
+                }
+            ],
+            "threads": [
+                {
+                    "threadId": 1001,
+                    "userName": "ukui",
+                    "priority": 20,
+                    "niceValue": 0,
+                    "virtualMemory": "1.2G",
+                    "residentMemory": "45M",
+                    "sharedMemory": "12M",
+                    "status": "S",
+                    "cpuUsage": "2.1",
+                    "memoryUsage": "1.5",
+                    "runtime": "00:15:32",
+                    "command": "/usr/bin/ukui-panel --display=:0"
+                },
+                {
+                    "threadId": 1002,
+                    "userName": "ukui",
+                    "priority": 20,
+                    "niceValue": 0,
+                    "virtualMemory": "1.2G",
+                    "residentMemory": "45M",
+                    "sharedMemory": "12M",
+                    "status": "S",
+                    "cpuUsage": "0.8",
+                    "memoryUsage": "0.6",
+                    "runtime": "00:15:32",
+                    "command": "/usr/bin/ukui-panel --display=:0"
+                }
+            ]
+        },
+        {
+            "serverId": "test-server-003",
+            "serverName": "测试服务器3",
+            "serverIp": "192.168.1.103",
+            "serverOs": "CentOS 8",
+            "serverStatus": "running",
+            "pid": 1234,
+            "name": "nginx",
+            "userName": "www-data",
+            "status": "R",
+            "timestamp": 1734249660000,
+            "trend": [
+                {
+                    "cpuUsage": 15.2,
+                    "memoryUsage": 5.8,
+                    "threadCount": 4
+                }
+            ],
+            "threads": [
+                {
+                    "threadId": 1234,
+                    "userName": "www-data",
+                    "priority": 20,
+                    "niceValue": 0,
+                    "virtualMemory": "512M",
+                    "residentMemory": "32M",
+                    "sharedMemory": "8M",
+                    "status": "R",
+                    "cpuUsage": "12.5",
+                    "memoryUsage": "4.2",
+                    "runtime": "02:45:18",
+                    "command": "nginx: master process /usr/sbin/nginx"
+                }
+            ]
+        }
+    ],
+    "metrics": [
+        {
+            "serverId": "test-server-001",
+            "timestamp": 1734249600000,
+            "cpuUsage": 45.2,
+            "memoryUsage": 68.5,
+            "diskUsage": 32.1,
+            "ioRead": 1024.5,
+            "ioWrite": 2048.3,
+            "networkIn": 512.7,
+            "networkOut": 256.9
+        },
+        {
+            "serverId": "test-server-001",
+            "timestamp": 1734249660000,
+            "cpuUsage": 52.8,
+            "memoryUsage": 71.2,
+            "diskUsage": 32.3,
+            "ioRead": 1156.2,
+            "ioWrite": 2234.1,
+            "networkIn": 623.4,
+            "networkOut": 312.5
+        }
+    ],
+    "dmesg": "[49910.077888] oops: loading out-of-tree module taints kernel...."
+}

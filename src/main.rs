@@ -91,29 +91,44 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let mut last_dmesg_time: Option<f64> = None;
 
                 loop {
-                    println!("--- Monitor Loop Start ---");
+                    let mut combined_data = serde_json::Map::new();
+
                     match metrics::collect_metrics() {
-                        Ok(json) => println!("Metrics: {}", json),
+                        Ok(json_str) => {
+                            if let Ok(val) = serde_json::from_str::<serde_json::Value>(&json_str) {
+                                combined_data.insert("metrics".to_string(), val);
+                            } else {
+                                eprintln!("Error parsing metrics json");
+                            }
+                        },
                         Err(e) => eprintln!("Error collecting metrics: {}", e),
                     }
 
                     match process::collect_processes() {
-                        Ok(json) => println!("Process: {}", json),
+                        Ok(json_str) => {
+                            if let Ok(val) = serde_json::from_str::<serde_json::Value>(&json_str) {
+                                combined_data.insert("process".to_string(), val);
+                            } else {
+                                eprintln!("Error parsing process json");
+                            }
+                        },
                         Err(e) => eprintln!("Error collecting processes: {}", e),
                     }
 
                     match dmesg::collect_dmesg(last_dmesg_time) {
-                        Ok((json, new_last_time)) => {
-                            if !json.is_empty() {
-                                println!("Dmesg: {}", json);
-                            }
+                        Ok((dmesg_str, new_last_time)) => {
+                            combined_data.insert("dmesg".to_string(), serde_json::Value::String(dmesg_str));
+                            
                             if let Some(t) = new_last_time {
                                 last_dmesg_time = Some(t);
                             }
                         }
                         Err(e) => eprintln!("Error collecting dmesg: {}", e),
                     }
-                    println!("--- Monitor Loop End ---");
+
+                    let final_json = serde_json::Value::Object(combined_data);
+                    // println!("{}", final_json);
+                    let _ = xbox_client::send_process(final_json.to_string());
 
                     tokio::time::sleep(std::time::Duration::from_secs(interval_secs)).await;
                 }
