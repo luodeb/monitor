@@ -159,12 +159,7 @@ async fn start_server(port: u16) -> Result<(), Box<dyn std::error::Error + Send 
 }
 
 async fn get_all_data() -> Json<serde_json::Value> {
-    match std::fs::read_to_string("data.json") {
-        Ok(content) => {
-            let v: serde_json::Value =
-                serde_json::from_str(&content).unwrap_or(serde_json::json!({}));
-            Json(v)
-        }
-        Err(_) => Json(serde_json::json!({})),
-    }
+    let dump_json: Vec<u8> = xbox_client::dump_process().unwrap();
+    let json_value: serde_json::Value = serde_json::from_slice(&dump_json).unwrap_or(serde_json::json!({}));
+    Json(json_value)
 }
