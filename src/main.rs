@@ -14,6 +14,11 @@ mod util;
 mod socket_shell;
 use socket_shell::{Sessions, websocket_handler};
 
+use std::sync::atomic::{AtomicBool, Ordering};
+
+/// 全局测试模式标志
+static TEST_MODE: AtomicBool = AtomicBool::new(false);
+
 #[derive(Parser)]
 #[command(name = "monitor")]
 #[command(about = "系统监控工具", long_about = None)]
@@ -51,6 +56,8 @@ enum Commands {
         #[arg(long)]
         sec: Option<u64>,
     },
+    /// 测试模式，使用 data.json 作为数据源
+    Test,
 }
 
 #[tokio::main]
@@ -137,6 +144,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     tokio::time::sleep(std::time::Duration::from_secs(interval_secs)).await;
                 }
             }
+            Commands::Test => {
+                TEST_MODE.store(true, Ordering::SeqCst);
+                println!("Test mode enabled, using data.json as data source");
+            }
         }
     } else if cli.server.is_none(){
         use clap::CommandFactory;
@@ -165,6 +176,26 @@ async fn start_server(port: u16, sessions: Sessions) -> Result<(), Box<dyn std::
 }
 
 async fn get_all_data() -> Json<serde_json::Value> {
+    if TEST_MODE.load(Ordering::SeqCst) {
+        // 测试模式：从 data.json 读取数据
+        match std::fs::read_to_string("data.json") {
+            Ok(content) => {
+                match serde_json::from_str::<serde_json::Value>(&content) {
+                    Ok(json_value) => return Json(json_value),
+                    Err(e) => {
+                        eprintln!("Error parsing data.json: {}", e);
+                        return Json(serde_json::json!({"error": "Failed to parse data.json"}));
+                    }
+                }
+            }
+            Err(e) => {
+                eprintln!("Error reading data.json: {}", e);
+                return Json(serde_json::json!({"error": "Failed to read data.json"}));
+            }
+        }
+    }
+    
+    // 正常模式：从 xbox_client 获取数据
     let dump_json: Vec<u8> = xbox_client::dump_process().unwrap();
     let json_value: serde_json::Value = serde_json::from_slice(&dump_json).unwrap_or(serde_json::json!({}));
     if let Ok(json_str) = serde_json::to_string_pretty(&json_value) {

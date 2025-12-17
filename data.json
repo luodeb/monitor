@@ -3,7 +3,7 @@
     {
       "serverId": "ukui-server-01",
       "serverName": "UKUI-Desktop-Server-01",
-      "serverIp": "192.168.1.101",
+      "serverIp": "10.88.21.38",
       "serverOs": "Ubuntu 20.04 LTS with UKUI 3.0",
       "serverStatus": "warning",
       "systemMetrics": [
