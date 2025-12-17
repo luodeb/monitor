@@ -1,16 +1,18 @@
 use axum::{
     Json, Router,
-    routing::post,
+    routing::{get, post},
 };
 use tower_http::cors::CorsLayer;
 use clap::{Parser, Subcommand};
-use std::net::SocketAddr;
-use tokio::net::TcpListener;
+use std::{collections::HashMap, net::SocketAddr, sync::Arc};
+use tokio::{net::TcpListener, sync::Mutex};
 
 mod dmesg;
 mod metrics;
 mod process;
 mod util;
+mod socket_shell;
+use socket_shell::{Sessions, websocket_handler};
 
 #[derive(Parser)]
 #[command(name = "monitor")]
@@ -55,9 +57,11 @@ enum Commands {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Cli::parse();
 
+    let sessions: Sessions = Arc::new(Mutex::new(HashMap::new()));
+
     if let Some(port) = cli.server {
         tokio::spawn(async move {
-            if let Err(e) = start_server(port).await {
+            if let Err(e) = start_server(port, sessions).await {
                 eprintln!("Server error: {}", e);
             }
         });
@@ -147,9 +151,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-async fn start_server(port: u16) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+async fn start_server(port: u16, sessions: Sessions) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let app = Router::new()
         .route("/api/getAllData", post(get_all_data).get(get_all_data))
+        .route("/ws/terminal", get(websocket_handler))
+        .with_state(sessions)
         .layer(CorsLayer::permissive());
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     println!("Server listening on {}", addr);
